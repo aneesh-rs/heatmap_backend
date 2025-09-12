@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { registerUser } from './users/users.controller';
-import { closeReport, createReport } from './reports/reports.controller';
+import { registerUser } from './controllers/users.controller';
+import { closeReport, createReport } from './controllers/reports.controller';
 
 dotenv.config();
 
