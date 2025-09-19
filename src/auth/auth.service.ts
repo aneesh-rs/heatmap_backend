@@ -1,0 +1,140 @@
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { MailerService } from '@nestjs-modules/mailer';
+import { UsersService } from '../users/users.service';
+import { LoginDto } from './dto/login.dto';
+import { SignupDto } from './dto/signup.dto';
+import { SocialLoginDto } from './dto/social-login.dto';
+import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
+import { OAuth2Client } from 'google-auth-library';
+
+@Injectable()
+export class AuthService {
+  private googleClient: OAuth2Client;
+
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+    private mailerService: MailerService,
+  ) {
+    this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  }
+
+  async validateUser(email: string, pass: string): Promise<any> {
+    const user = await this.usersService.findByEmail(email);
+    if (user && user.password && (await bcrypt.compare(pass, user.password))) {
+      if (!user.emailVerified) {
+        throw new UnauthorizedException('Please verify your email first');
+      }
+      const { password, ...result } = user.toObject();
+      return result;
+    }
+    return null;
+  }
+
+  async login(loginDto: LoginDto) {
+    const user = await this.validateUser(loginDto.email, loginDto.password);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    const payload = { email: user.email, sub: user.id, role: user.role };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user,
+    };
+  }
+
+  async signup(signupDto: SignupDto) {
+    const existingUser = await this.usersService.findByEmail(signupDto.email);
+    if (existingUser) {
+      throw new BadRequestException('User already exists');
+    }
+
+    const hashedPassword = await bcrypt.hash(signupDto.password, 10);
+    const verificationToken = uuidv4();
+    const userId = uuidv4();
+
+    const user = await this.usersService.create({
+      ...signupDto,
+      id: userId,
+      password: hashedPassword,
+      role: 'User', // Default role
+      emailVerified: false,
+      verificationToken,
+    });
+
+    await this.sendVerificationEmail(user.email, verificationToken);
+
+    return { message: 'Verification email sent' };
+  }
+
+  async googleLogin(socialLoginDto: SocialLoginDto) {
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken: socialLoginDto.idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload();
+      if (!payload) {
+        throw new UnauthorizedException('Invalid Google token');
+      }
+
+      let user = await this.usersService.findByEmail(payload.email || '');
+
+      if (!user) {
+        // Create new user from Google profile
+        const userId = uuidv4();
+        user = await this.usersService.create({
+          id: userId,
+          email: payload.email,
+          name: payload.given_name || payload.name,
+          firstSurname: payload.family_name || '',
+          role: 'User',
+          photoURL: payload.picture,
+          emailVerified: true, // Google emails are pre-verified
+        });
+      }
+
+      const jwtPayload = { email: user.email, sub: user.id, role: user.role };
+      return {
+        access_token: this.jwtService.sign(jwtPayload),
+        user,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid Google token');
+    }
+  }
+
+  async verifyEmail(token: string) {
+    const user = await this.usersService.findByVerificationToken(token);
+    if (!user) {
+      throw new BadRequestException('Invalid verification token');
+    }
+
+    await this.usersService.update(user.id, {
+      emailVerified: true,
+      verificationToken: null,
+    });
+
+    return { message: 'Email verified successfully' };
+  }
+
+  private async sendVerificationEmail(email: string, token: string) {
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Verify your email',
+      template: './verification',
+      context: {
+        verificationUrl,
+      },
+    });
+  }
+}
