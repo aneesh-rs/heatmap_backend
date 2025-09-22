@@ -7,6 +7,10 @@ export type InvitationDocument = Invitation & Document;
 @Schema({ timestamps: true })
 export class Invitation {
   @ApiProperty()
+  @Prop({ required: true, unique: true })
+  id: string;
+
+  @ApiProperty()
   @Prop({ required: true })
   inviterId: string;
 

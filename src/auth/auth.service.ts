@@ -11,7 +11,10 @@ import { SignupDto } from './dto/signup.dto';
 import { SocialLoginDto } from './dto/social-login.dto';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
-import { OAuth2Client } from 'google-auth-library';
+import { OAuth2Client, TokenPayload } from 'google-auth-library';
+import { InvitationsService } from '../invitations/invitations.service';
+import { InvitationDocument } from '../schemas/invitation.schema';
+import { UserDocument } from '../schemas/user.schema';
 
 @Injectable()
 export class AuthService {
@@ -21,18 +24,22 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private mailerService: MailerService,
+    private invitationsService: InvitationsService,
   ) {
-    this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '');
   }
 
-  async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email);
+  async validateUser(
+    email: string,
+    pass: string,
+  ): Promise<{ id: string; email: string; role: string } | null> {
+    const user: UserDocument | null =
+      await this.usersService.findByEmail(email);
     if (user && user.password && (await bcrypt.compare(pass, user.password))) {
       if (!user.emailVerified) {
         throw new UnauthorizedException('Please verify your email first');
       }
-      const { password, ...result } = user.toObject();
-      return result;
+      return { id: user.id, email: user.email, role: user.role };
     }
     return null;
   }
@@ -42,7 +49,11 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const payload = { email: user.email, sub: user.id, role: user.role };
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+    } as const;
     return {
       access_token: this.jwtService.sign(payload),
       user,
@@ -59,16 +70,43 @@ export class AuthService {
     const verificationToken = uuidv4();
     const userId = uuidv4();
 
+    let roleToAssign: 'Admin' | 'User' = 'User';
+    if (signupDto.invitationId) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        const invite: InvitationDocument =
+          await this.invitationsService.getInvitation(
+            signupDto.invitationId as string,
+          );
+        roleToAssign = (invite.role as 'Admin' | 'User') || 'User';
+      } catch {
+        // ignore invalid invite, fallback to default role
+      }
+    }
+
     const user = await this.usersService.create({
       ...signupDto,
       id: userId,
       password: hashedPassword,
-      role: 'User', // Default role
+      role: roleToAssign,
       emailVerified: false,
       verificationToken,
     });
 
     await this.sendVerificationEmail(user.email, verificationToken);
+
+    if (signupDto.invitationId) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        await this.invitationsService.acceptInvitation(
+          signupDto.invitationId as string,
+          userId,
+          user.email,
+        );
+      } catch {
+        // best-effort; do not block signup if invitation accept fails
+      }
+    }
 
     return { message: 'Verification email sent' };
   }
@@ -80,7 +118,7 @@ export class AuthService {
         audience: process.env.GOOGLE_CLIENT_ID,
       });
 
-      const payload = ticket.getPayload();
+      const payload: TokenPayload | undefined = ticket.getPayload();
       if (!payload) {
         throw new UnauthorizedException('Invalid Google token');
       }
@@ -101,12 +139,16 @@ export class AuthService {
         });
       }
 
-      const jwtPayload = { email: user.email, sub: user.id, role: user.role };
+      const jwtPayload = {
+        email: user.email,
+        sub: user.id,
+        role: user.role,
+      } as const;
       return {
         access_token: this.jwtService.sign(jwtPayload),
         user,
       };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid Google token');
     }
   }

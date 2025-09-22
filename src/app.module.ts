@@ -7,10 +7,10 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { join } from 'path';
 
-// import { AuthModule } from './auth/auth.module';
-// import { UsersModule } from './users/users.module';
-// import { ReportsModule } from './reports/reports.module';
-// import { InvitationsModule } from './invitations/invitations.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { ReportsModule } from './reports/reports.module';
+import { InvitationsModule } from './invitations/invitations.module';
 
 @Module({
   imports: [
@@ -57,10 +57,10 @@ import { join } from 'path';
     }),
 
     // Application modules
-    // AuthModule,
-    // UsersModule,
-    // ReportsModule,
-    // InvitationsModule,
+    AuthModule,
+    UsersModule,
+    ReportsModule,
+    InvitationsModule,
   ],
   providers: [
     {
