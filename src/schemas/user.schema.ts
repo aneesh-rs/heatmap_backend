@@ -19,11 +19,11 @@ export class User {
   role: string;
 
   @ApiProperty()
-  @Prop({ required: true })
+  @Prop()
   name: string;
 
   @ApiProperty()
-  @Prop({ required: true })
+  @Prop()
   firstSurname: string;
 
   @ApiProperty()

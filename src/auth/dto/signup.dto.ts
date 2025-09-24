@@ -19,10 +19,12 @@ export class SignupDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   name: string;
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   firstSurname: string;
 
   @ApiProperty()
@@ -32,6 +34,7 @@ export class SignupDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   birthday: string;
 
   @ApiProperty({ required: false })

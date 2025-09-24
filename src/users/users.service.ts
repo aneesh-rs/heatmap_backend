@@ -32,12 +32,29 @@ export class UsersService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<UserDocument> {
-    return this.userModel.findOne({ email }).exec();
+  async findByEmail(email: string): Promise<UserDocument | null> {
+    const user = await this.userModel.findOne({ email }).exec();
+    return user;
+  }
+
+  async findByEmailOrThrow(email: string): Promise<UserDocument> {
+    const user = await this.userModel.findOne({ email }).exec();
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+    return user;
   }
 
   async findByVerificationToken(token: string): Promise<UserDocument> {
-    return this.userModel.findOne({ verificationToken: token }).exec();
+    const user = await this.userModel
+      .findOne({ verificationToken: token })
+      .exec();
+    if (!user) {
+      throw new NotFoundException(
+        `User with verification token ${token} not found`,
+      );
+    }
+    return user;
   }
 
   async update(

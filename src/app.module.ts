@@ -26,12 +26,12 @@ import { InvitationsModule } from './invitations/invitations.module';
     ),
 
     // Rate limiting
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute
-      },
-    ]),
+    // ThrottlerModule.forRoot([
+    //   {
+    //     ttl: 60000, // 1 minute
+    //     limit: 100, // 100 requests per minute
+    //   },
+    // ]),
 
     // Email service
     MailerModule.forRoot({
@@ -48,7 +48,10 @@ import { InvitationsModule } from './invitations/invitations.module';
         from: `"Heatmap App" <${process.env.EMAIL_USER}>`,
       },
       template: {
-        dir: join(__dirname, 'templates'),
+        dir:
+          process.env.NODE_ENV === 'production'
+            ? join(__dirname, 'templates') // dist/templates
+            : join(process.cwd(), 'src', 'templates'), // src/templates
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
@@ -63,10 +66,10 @@ import { InvitationsModule } from './invitations/invitations.module';
     InvitationsModule,
   ],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: ThrottlerGuard,
+    // },
   ],
 })
 export class AppModule {}
