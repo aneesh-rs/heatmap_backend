@@ -37,6 +37,7 @@ let UsersService = class UsersService {
         if (!user) {
             throw new common_1.NotFoundException(`User with ID ${id} not found`);
         }
+        console.log('user :', user);
         return user;
     }
     async findByEmail(email) {
@@ -57,6 +58,15 @@ let UsersService = class UsersService {
         if (!user) {
             throw new common_1.NotFoundException(`User with verification token ${token} not found`);
         }
+        return user;
+    }
+    async findByResetPasswordToken(token) {
+        const user = await this.userModel
+            .findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: new Date() },
+        })
+            .exec();
         return user;
     }
     async update(id, updateUserDto) {

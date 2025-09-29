@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReportSchema = exports.Report = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
+const mongoose_2 = require("mongoose");
 const swagger_1 = require("@nestjs/swagger");
 class Location {
     lat;
@@ -30,6 +31,7 @@ __decorate([
     __metadata("design:type", String)
 ], Location.prototype, "address", void 0);
 let Report = class Report {
+    id;
     userId;
     feeling;
     category;
@@ -42,6 +44,15 @@ let Report = class Report {
     updatedAt;
 };
 exports.Report = Report;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, mongoose_1.Prop)({
+        required: true,
+        unique: true,
+        default: () => new mongoose_2.Types.ObjectId().toString(),
+    }),
+    __metadata("design:type", String)
+], Report.prototype, "id", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, mongoose_1.Prop)({ required: true }),

@@ -33,6 +33,7 @@ let UsersController = class UsersController {
         return this.usersService.getUserStats();
     }
     async getProfile(req) {
+        console.log('from user profile controller -> unathorized', req.user);
         return this.usersService.findById(req.user.id);
     }
     async findOne(id, req) {

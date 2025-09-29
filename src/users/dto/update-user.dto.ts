@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsEmail, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEmail,
+  IsBoolean,
+  IsEnum,
+  IsDate,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateUserDto {
@@ -22,6 +29,11 @@ export class UpdateUserDto {
   @IsOptional()
   secondSurname?: string;
 
+  @ApiProperty({ enum: ['Admin', 'User'] })
+  @IsEnum({ Admin: 'Admin', User: 'User' })
+  @IsOptional()
+  role?: string;
+
   @ApiProperty()
   @IsString()
   @IsOptional()
@@ -41,4 +53,19 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   verificationToken?: string | null;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  resetPasswordToken?: string | null;
+
+  @ApiProperty()
+  @IsDate()
+  @IsOptional()
+  resetPasswordExpires?: Date | null;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  password?: string | null;
 }

@@ -48,6 +48,12 @@ export class User {
   @Prop()
   verificationToken?: string;
 
+  @Prop()
+  resetPasswordToken?: string;
+
+  @Prop()
+  resetPasswordExpires?: Date;
+
   @ApiProperty()
   @Prop({ default: Date.now })
   createdAt: Date;

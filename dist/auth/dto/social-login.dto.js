@@ -14,6 +14,7 @@ const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 class SocialLoginDto {
     idToken;
+    invitationId;
 }
 exports.SocialLoginDto = SocialLoginDto;
 __decorate([
@@ -21,4 +22,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], SocialLoginDto.prototype, "idToken", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], SocialLoginDto.prototype, "invitationId", void 0);
 //# sourceMappingURL=social-login.dto.js.map

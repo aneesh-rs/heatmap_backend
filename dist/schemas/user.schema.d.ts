@@ -12,6 +12,8 @@ export declare class User {
     password?: string;
     emailVerified: boolean;
     verificationToken?: string;
+    resetPasswordToken?: string;
+    resetPasswordExpires?: Date;
     createdAt: Date;
     updatedAt: Date;
 }

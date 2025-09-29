@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CloudNoise - News from your report!</title>
+    <title>CloudNoise - New Report Created</title>
     <!--[if mso]>
       <noscript>
         <xml>
@@ -125,7 +125,7 @@
                   "
                   class="mobile-title"
                 >
-                  News from your report!
+                  New report created!
                 </h1>
               </td>
             </tr>
@@ -143,24 +143,10 @@
                     font-family: Arial, Helvetica, sans-serif;
                   "
                 >
-                  Hi Angela,
+                  Hi Admin,
                 </p>
 
                 <!-- Main Message -->
-                <p
-                  style="
-                    font-size: 16px;
-                    color: #666666;
-                    margin: 0 0 20px 0;
-                    line-height: 1.6;
-                    font-family: Arial, Helvetica, sans-serif;
-                  "
-                >
-                  This means they've solved the problem and the person in charge
-                  has closed your case to confirm that the situation has
-                  improved.
-                </p>
-
                 <p
                   style="
                     font-size: 16px;
@@ -170,8 +156,9 @@
                     font-family: Arial, Helvetica, sans-serif;
                   "
                 >
-                  And it's all thanks to you, since you, the citizens, are the
-                  ones who can best help the city.
+                  {{userName}} created a new report. Check in your admin panel, the
+                  list of the reports, or, open the report in the below link to
+                  go into the Map Location.
                 </p>
 
                 <!-- Report Details -->
@@ -224,7 +211,7 @@
                                 font-weight: 600;
                                 font-family: Arial, Helvetica, sans-serif;
                               "
-                              >[Location]</span
+                              >{{locationAddress}}</span
                             >
                           </td>
                         </tr>
@@ -273,7 +260,7 @@
                                 font-weight: 600;
                                 font-family: Arial, Helvetica, sans-serif;
                               "
-                              >[Location]</span
+                              >{{feeling}}</span
                             >
                           </td>
                         </tr>
@@ -322,7 +309,7 @@
                                 font-weight: 600;
                                 font-family: Arial, Helvetica, sans-serif;
                               "
-                              >April 03, 2022 at 09:00 PM</span
+                              >{{createdAt}}</span
                             >
                           </td>
                         </tr>
@@ -376,10 +363,7 @@
                                 font-family: Arial, Helvetica, sans-serif;
                               "
                             >
-                              Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum
-                              Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum
-                              Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum
-                              Lorem Ipsum Lorem Ipsum Lorem Ipsum
+                              {{reportText}}
                             </p>
                           </td>
                         </tr>
@@ -465,8 +449,8 @@
                       src="https://i.ibb.co/TBrZNw7Y/custom-marker.png"
                       alt="Location Pin"
                       style="
-                        width: 60px;
-                        height: 60px;
+                        width: 40px;
+                        height: auto;
                         display: block;
                         margin: 0 auto;
                         border: 0;
@@ -475,7 +459,7 @@
                     <div style="text-align: center; margin-top: 10px">
                       <span
                         style="
-                          font-size: 18px;
+                          font-size: 14px;
                           font-weight: 600;
                           color: #333333;
                           font-family: Arial, Helvetica, sans-serif;
@@ -486,13 +470,15 @@
                   </div>
                 </div>
 
-                <!-- Report Closed Button -->
-                <div style="text-align: center; margin-bottom: 30px">
-                  <div
+                <!-- View Report Button -->
+                <div style="text-align: center; margin-bottom: 40px">
+                  <a
+                    href="#"
                     style="
                       display: inline-block;
                       background-color: #2196f3;
                       color: #ffffff;
+                      text-decoration: none;
                       padding: 16px 32px;
                       border-radius: 8px;
                       font-size: 18px;
@@ -501,10 +487,22 @@
                       min-width: 200px;
                     "
                     class="mobile-button"
+                    >View Report</a
                   >
-                    Report Closed
-                  </div>
                 </div>
+
+                <!-- Thanks -->
+                <p
+                  style="
+                    font-size: 16px;
+                    color: #333333;
+                    margin: 0 0 40px 0;
+                    line-height: 1.6;
+                    font-family: Arial, Helvetica, sans-serif;
+                  "
+                >
+                  Thanks,
+                </p>
               </td>
             </tr>
 

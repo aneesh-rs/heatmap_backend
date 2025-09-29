@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
 export type ReportDocument = Report & Document;
@@ -17,6 +17,14 @@ class Location {
 
 @Schema({ timestamps: true })
 export class Report {
+  @ApiProperty()
+  @Prop({
+    required: true,
+    unique: true,
+    default: () => new Types.ObjectId().toString(),
+  })
+  id: string;
+
   @ApiProperty()
   @Prop({ required: true })
   userId: string;

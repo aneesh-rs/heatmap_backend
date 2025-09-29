@@ -60,6 +60,8 @@ export class UsersController {
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Current user profile', type: User })
   async getProfile(@Request() req) {
+    console.log('from user profile controller -> unathorized', req.user);
+
     return this.usersService.findById(req.user.id);
   }
 

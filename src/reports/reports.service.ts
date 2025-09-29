@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { MailerService } from '@nestjs-modules/mailer';
+import { UsersService } from '../users/users.service';
 import { Report, ReportDocument } from '../schemas/report.schema';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportStatusDto } from './dto/update-report-status.dto';
@@ -14,6 +16,8 @@ import { QueryReportsDto } from './dto/query-reports.dto';
 export class ReportsService {
   constructor(
     @InjectModel(Report.name) private reportModel: Model<ReportDocument>,
+    private readonly mailerService: MailerService,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(
@@ -24,7 +28,41 @@ export class ReportsService {
       ...createReportDto,
       userId,
     });
-    return createdReport.save();
+    const savedReport = await createdReport.save();
+
+    // Send email notification to admin
+    try {
+      const user = await this.usersService.findById(userId);
+      const formattedCreatedAt = new Date(savedReport.createdAt).toLocaleString(
+        'en-US',
+        {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        },
+      );
+
+      await this.mailerService.sendMail({
+        to: 'admin@cloudnoise.com', // Replace with actual admin email
+        subject: 'New Report Created',
+        template: 'report-created',
+        context: {
+          userName: user.name,
+          locationAddress: savedReport.location.address,
+          feeling: savedReport.feeling,
+          createdAt: formattedCreatedAt,
+          reportText: savedReport.reportText,
+        },
+      });
+    } catch (error) {
+      // Log error but don't fail the report creation
+      console.error('Failed to send email:', error);
+    }
+
+    return savedReport;
   }
 
   async findAll(
@@ -38,7 +76,6 @@ export class ReportsService {
     if (userRole !== 'Admin' && userId) {
       filter.userId = userId;
     }
-
     // Apply query filters
     if (queryDto.status) {
       filter.reportStatus = queryDto.status;
@@ -79,7 +116,7 @@ export class ReportsService {
     userRole: string,
     userId: string,
   ): Promise<ReportDocument> {
-    const report = await this.reportModel.findById(id).exec();
+    const report = await this.reportModel.findOne({ id }).exec();
 
     if (!report) {
       throw new NotFoundException(`Report with ID ${id} not found`);
@@ -98,8 +135,8 @@ export class ReportsService {
     updateStatusDto: UpdateReportStatusDto,
   ): Promise<ReportDocument> {
     const updatedReport = await this.reportModel
-      .findByIdAndUpdate(
-        id,
+      .findOneAndUpdate(
+        { id },
         {
           reportStatus: updateStatusDto.reportStatus,
           updatedAt: new Date(),
@@ -112,11 +149,44 @@ export class ReportsService {
       throw new NotFoundException(`Report with ID ${id} not found`);
     }
 
+    // Send email if status changed to Closed
+    if (updatedReport.reportStatus === 'Closed') {
+      try {
+        const user = await this.usersService.findById(updatedReport.userId);
+        const formattedCreatedAt = new Date(
+          updatedReport.createdAt,
+        ).toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        });
+
+        await this.mailerService.sendMail({
+          to: user.email,
+          subject: 'News from your report!',
+          template: 'report-closed',
+          context: {
+            firstName: user.name,
+            locationAddress: updatedReport.location.address,
+            feeling: updatedReport.feeling,
+            createdAt: formattedCreatedAt,
+            reportText: updatedReport.reportText,
+          },
+        });
+      } catch (error) {
+        // Log error but don't fail the update
+        console.error('Failed to send email:', error);
+      }
+    }
+
     return updatedReport;
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.reportModel.deleteOne({ _id: id }).exec();
+    const result = await this.reportModel.deleteOne({ id }).exec();
     if (result.deletedCount === 0) {
       throw new NotFoundException(`Report with ID ${id} not found`);
     }

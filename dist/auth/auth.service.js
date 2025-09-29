@@ -119,47 +119,59 @@ let AuthService = class AuthService {
             try {
                 await this.invitationsService.acceptInvitation(signupDto.invitationId, userId, user.email);
             }
-            catch {
+            catch (err) {
+                console.log(err);
             }
         }
         return { message: 'Verification email sent' };
     }
-    async googleLogin(socialLoginDto) {
-        try {
-            const ticket = await this.googleClient.verifyIdToken({
-                idToken: socialLoginDto.idToken,
-                audience: process.env.GOOGLE_CLIENT_ID,
-            });
-            const payload = ticket.getPayload();
-            if (!payload) {
-                throw new common_1.UnauthorizedException('Invalid Google token');
-            }
-            let user = await this.usersService.findByEmail(payload.email || '');
-            if (!user) {
-                const userId = (0, uuid_1.v4)();
-                user = await this.usersService.create({
-                    id: userId,
-                    email: payload.email,
-                    name: payload.given_name || payload.name,
-                    firstSurname: payload.family_name || '',
-                    role: 'User',
-                    photoURL: payload.picture,
-                    emailVerified: true,
-                });
-            }
-            const jwtPayload = {
-                email: user.email,
-                sub: user.id,
-                role: user.role,
-            };
-            return {
-                access_token: this.jwtService.sign(jwtPayload),
-                user,
-            };
-        }
-        catch {
+    async googleLogin(dto) {
+        const ticket = await this.googleClient.verifyIdToken({
+            idToken: dto.idToken,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        if (!payload || !payload.email) {
             throw new common_1.UnauthorizedException('Invalid Google token');
         }
+        let user = await this.usersService.findByEmail(payload.email);
+        if (!user) {
+            let roleToAssign = 'User';
+            if (dto.invitationId) {
+                try {
+                    const invite = await this.invitationsService.getInvitation(dto.invitationId);
+                    roleToAssign = invite.role || 'User';
+                }
+                catch {
+                }
+            }
+            const userId = (0, uuid_1.v4)();
+            user = await this.usersService.create({
+                id: userId,
+                email: payload.email,
+                name: payload.name ?? payload.given_name ?? 'Google User',
+                role: roleToAssign,
+                photoURL: payload.picture ?? '',
+                emailVerified: true,
+            });
+            if (dto.invitationId) {
+                try {
+                    await this.invitationsService.acceptInvitation(dto.invitationId, user.id, user.email);
+                }
+                catch (err) {
+                    console.error(err);
+                }
+            }
+        }
+        const jwtPayload = {
+            email: user.email,
+            sub: user.id,
+            role: user.role,
+        };
+        return {
+            access_token: this.jwtService.sign(jwtPayload),
+            user,
+        };
     }
     async verifyEmail(token) {
         const user = await this.usersService.findByVerificationToken(token);
@@ -180,6 +192,44 @@ let AuthService = class AuthService {
             template: './verification',
             context: {
                 verificationUrl,
+            },
+        });
+    }
+    async forgotPassword(forgotPasswordDto) {
+        const user = await this.usersService.findByEmail(forgotPasswordDto.email);
+        if (!user) {
+            throw new common_1.BadRequestException('User not found');
+        }
+        const resetToken = (0, uuid_1.v4)();
+        const resetExpires = new Date(Date.now() + 3600000);
+        await this.usersService.update(user.id, {
+            resetPasswordToken: resetToken,
+            resetPasswordExpires: resetExpires,
+        });
+        await this.sendResetPasswordEmail(user.email, resetToken);
+        return { message: 'Password reset email sent' };
+    }
+    async resetPassword(resetPasswordDto) {
+        const user = await this.usersService.findByResetPasswordToken(resetPasswordDto.token);
+        if (!user) {
+            throw new common_1.BadRequestException('Invalid or expired reset token');
+        }
+        const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, 10);
+        await this.usersService.update(user.id, {
+            password: hashedPassword,
+            resetPasswordToken: null,
+            resetPasswordExpires: null,
+        });
+        return { message: 'Password reset successfully' };
+    }
+    async sendResetPasswordEmail(email, token) {
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+        await this.mailerService.sendMail({
+            to: email,
+            subject: 'Reset your password',
+            template: './reset-password',
+            context: {
+                resetUrl,
             },
         });
     }

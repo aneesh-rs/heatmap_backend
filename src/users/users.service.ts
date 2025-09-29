@@ -29,6 +29,8 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+    console.log('user :', user);
+
     return user;
   }
 
@@ -54,6 +56,16 @@ export class UsersService {
         `User with verification token ${token} not found`,
       );
     }
+    return user;
+  }
+
+  async findByResetPasswordToken(token: string): Promise<UserDocument | null> {
+    const user = await this.userModel
+      .findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: new Date() },
+      })
+      .exec();
     return user;
   }
 

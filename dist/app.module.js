@@ -17,7 +17,11 @@ const auth_module_1 = require("./auth/auth.module");
 const users_module_1 = require("./users/users.module");
 const reports_module_1 = require("./reports/reports.module");
 const invitations_module_1 = require("./invitations/invitations.module");
+const logger_middleware_1 = require("./middleware/logger.middleware");
 let AppModule = class AppModule {
+    configure(consumer) {
+        consumer.apply(logger_middleware_1.LoggerMiddleware).forRoutes('*');
+    }
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([

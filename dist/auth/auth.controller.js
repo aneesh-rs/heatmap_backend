@@ -17,10 +17,13 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const throttler_1 = require("@nestjs/throttler");
 const auth_service_1 = require("./auth.service");
+const reset_password_guard_1 = require("./guards/reset-password.guard");
 const login_dto_1 = require("./dto/login.dto");
 const signup_dto_1 = require("./dto/signup.dto");
 const social_login_dto_1 = require("./dto/social-login.dto");
 const verify_email_dto_1 = require("./dto/verify-email.dto");
+const forgot_password_dto_1 = require("./dto/forgot-password.dto");
+const reset_password_dto_1 = require("./dto/reset-password.dto");
 let AuthController = class AuthController {
     authService;
     constructor(authService) {
@@ -43,6 +46,12 @@ let AuthController = class AuthController {
     }
     async verifyEmail(verifyEmailDto) {
         return this.authService.verifyEmail(verifyEmailDto.token);
+    }
+    async forgotPassword(forgotPasswordDto) {
+        return this.authService.forgotPassword(forgotPasswordDto);
+    }
+    async resetPassword(resetPasswordDto) {
+        return this.authService.resetPassword(resetPasswordDto);
     }
 };
 exports.AuthController = AuthController;
@@ -115,6 +124,29 @@ __decorate([
     __metadata("design:paramtypes", [verify_email_dto_1.VerifyEmailDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "verifyEmail", null);
+__decorate([
+    (0, common_1.Post)('forgot-password'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Request password reset' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Password reset email sent' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'User not found' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [forgot_password_dto_1.ForgotPasswordDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "forgotPassword", null);
+__decorate([
+    (0, common_1.Post)('reset-password'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, common_1.UseGuards)(reset_password_guard_1.ResetPasswordGuard),
+    (0, swagger_1.ApiOperation)({ summary: 'Reset password with token' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Password reset successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid or expired reset token' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [reset_password_dto_1.ResetPasswordDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "resetPassword", null);
 exports.AuthController = AuthController = __decorate([
     (0, swagger_1.ApiTags)('authentication'),
     (0, common_1.Controller)('auth'),

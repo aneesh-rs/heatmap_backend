@@ -3,6 +3,8 @@ import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
 import { SocialLoginDto } from './dto/social-login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -24,6 +26,12 @@ export declare class AuthController {
     facebookLogin(socialLoginDto: SocialLoginDto): Promise<void>;
     appleLogin(socialLoginDto: SocialLoginDto): Promise<void>;
     verifyEmail(verifyEmailDto: VerifyEmailDto): Promise<{
+        message: string;
+    }>;
+    forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{
+        message: string;
+    }>;
+    resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{
         message: string;
     }>;
 }

@@ -17,10 +17,14 @@ class UpdateUserDto {
     name;
     firstSurname;
     secondSurname;
+    role;
     birthday;
     photoURL;
     emailVerified;
     verificationToken;
+    resetPasswordToken;
+    resetPasswordExpires;
+    password;
 }
 exports.UpdateUserDto = UpdateUserDto;
 __decorate([
@@ -48,6 +52,12 @@ __decorate([
     __metadata("design:type", String)
 ], UpdateUserDto.prototype, "secondSurname", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ enum: ['Admin', 'User'] }),
+    (0, class_validator_1.IsEnum)({ Admin: 'Admin', User: 'User' }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateUserDto.prototype, "role", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
@@ -71,4 +81,22 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Object)
 ], UpdateUserDto.prototype, "verificationToken", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Object)
+], UpdateUserDto.prototype, "resetPasswordToken", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsDate)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Object)
+], UpdateUserDto.prototype, "resetPasswordExpires", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Object)
+], UpdateUserDto.prototype, "password", void 0);
 //# sourceMappingURL=update-user.dto.js.map

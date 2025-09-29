@@ -9,10 +9,13 @@ import {
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
+import { ResetPasswordGuard } from './guards/reset-password.guard';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
 import { SocialLoginDto } from './dto/social-login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @ApiTags('authentication')
 @Controller('auth')
@@ -76,5 +79,24 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Invalid verification token' })
   async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
     return this.authService.verifyEmail(verifyEmailDto.token);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request password reset' })
+  @ApiResponse({ status: 200, description: 'Password reset email sent' })
+  @ApiResponse({ status: 400, description: 'User not found' })
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ResetPasswordGuard)
+  @ApiOperation({ summary: 'Reset password with token' })
+  @ApiResponse({ status: 200, description: 'Password reset successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired reset token' })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 }

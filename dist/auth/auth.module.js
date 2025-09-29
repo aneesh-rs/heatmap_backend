@@ -16,6 +16,7 @@ const users_module_1 = require("../users/users.module");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
 const local_strategy_1 = require("./strategies/local.strategy");
 const invitations_module_1 = require("../invitations/invitations.module");
+const reset_password_guard_1 = require("./guards/reset-password.guard");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -31,7 +32,7 @@ exports.AuthModule = AuthModule = __decorate([
             }),
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService, local_strategy_1.LocalStrategy, jwt_strategy_1.JwtStrategy],
+        providers: [auth_service_1.AuthService, local_strategy_1.LocalStrategy, jwt_strategy_1.JwtStrategy, reset_password_guard_1.ResetPasswordGuard],
         exports: [auth_service_1.AuthService],
     })
 ], AuthModule);

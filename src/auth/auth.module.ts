@@ -8,6 +8,7 @@ import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { InvitationsModule } from '../invitations/invitations.module';
+import { ResetPasswordGuard } from './guards/reset-password.guard';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { InvitationsModule } from '../invitations/invitations.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, ResetPasswordGuard],
   exports: [AuthService],
 })
 export class AuthModule {}

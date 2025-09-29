@@ -24,6 +24,8 @@ let User = class User {
     password;
     emailVerified;
     verificationToken;
+    resetPasswordToken;
+    resetPasswordExpires;
     createdAt;
     updatedAt;
 };
@@ -81,6 +83,14 @@ __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", String)
 ], User.prototype, "verificationToken", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], User.prototype, "resetPasswordToken", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Date)
+], User.prototype, "resetPasswordExpires", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, mongoose_1.Prop)({ default: Date.now }),

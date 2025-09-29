@@ -4,6 +4,8 @@ import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
 import { SocialLoginDto } from './dto/social-login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { InvitationsService } from '../invitations/invitations.service';
 import { UserDocument } from '../schemas/user.schema';
 export declare class AuthService {
@@ -29,7 +31,7 @@ export declare class AuthService {
     signup(signupDto: SignupDto): Promise<{
         message: string;
     }>;
-    googleLogin(socialLoginDto: SocialLoginDto): Promise<{
+    googleLogin(dto: SocialLoginDto): Promise<{
         access_token: string;
         user: UserDocument;
     }>;
@@ -37,4 +39,11 @@ export declare class AuthService {
         message: string;
     }>;
     private sendVerificationEmail;
+    forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{
+        message: string;
+    }>;
+    resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{
+        message: string;
+    }>;
+    private sendResetPasswordEmail;
 }

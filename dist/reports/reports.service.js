@@ -16,18 +16,51 @@ exports.ReportsService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const mailer_1 = require("@nestjs-modules/mailer");
+const users_service_1 = require("../users/users.service");
 const report_schema_1 = require("../schemas/report.schema");
 let ReportsService = class ReportsService {
     reportModel;
-    constructor(reportModel) {
+    mailerService;
+    usersService;
+    constructor(reportModel, mailerService, usersService) {
         this.reportModel = reportModel;
+        this.mailerService = mailerService;
+        this.usersService = usersService;
     }
     async create(createReportDto, userId) {
         const createdReport = new this.reportModel({
             ...createReportDto,
             userId,
         });
-        return createdReport.save();
+        const savedReport = await createdReport.save();
+        try {
+            const user = await this.usersService.findById(userId);
+            const formattedCreatedAt = new Date(savedReport.createdAt).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+            });
+            await this.mailerService.sendMail({
+                to: 'admin@cloudnoise.com',
+                subject: 'New Report Created',
+                template: 'report-created',
+                context: {
+                    userName: user.name,
+                    locationAddress: savedReport.location.address,
+                    feeling: savedReport.feeling,
+                    createdAt: formattedCreatedAt,
+                    reportText: savedReport.reportText,
+                },
+            });
+        }
+        catch (error) {
+            console.error('Failed to send email:', error);
+        }
+        return savedReport;
     }
     async findAll(queryDto, userRole, userId) {
         const filter = {};
@@ -61,7 +94,7 @@ let ReportsService = class ReportsService {
         return this.reportModel.find(filter).sort({ createdAt: -1 }).exec();
     }
     async findOne(id, userRole, userId) {
-        const report = await this.reportModel.findById(id).exec();
+        const report = await this.reportModel.findOne({ id }).exec();
         if (!report) {
             throw new common_1.NotFoundException(`Report with ID ${id} not found`);
         }
@@ -72,7 +105,7 @@ let ReportsService = class ReportsService {
     }
     async updateStatus(id, updateStatusDto) {
         const updatedReport = await this.reportModel
-            .findByIdAndUpdate(id, {
+            .findOneAndUpdate({ id }, {
             reportStatus: updateStatusDto.reportStatus,
             updatedAt: new Date(),
         }, { new: true })
@@ -80,10 +113,38 @@ let ReportsService = class ReportsService {
         if (!updatedReport) {
             throw new common_1.NotFoundException(`Report with ID ${id} not found`);
         }
+        if (updatedReport.reportStatus === 'Closed') {
+            try {
+                const user = await this.usersService.findById(updatedReport.userId);
+                const formattedCreatedAt = new Date(updatedReport.createdAt).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true,
+                });
+                await this.mailerService.sendMail({
+                    to: user.email,
+                    subject: 'News from your report!',
+                    template: 'report-closed',
+                    context: {
+                        firstName: user.name,
+                        locationAddress: updatedReport.location.address,
+                        feeling: updatedReport.feeling,
+                        createdAt: formattedCreatedAt,
+                        reportText: updatedReport.reportText,
+                    },
+                });
+            }
+            catch (error) {
+                console.error('Failed to send email:', error);
+            }
+        }
         return updatedReport;
     }
     async remove(id) {
-        const result = await this.reportModel.deleteOne({ _id: id }).exec();
+        const result = await this.reportModel.deleteOne({ id }).exec();
         if (result.deletedCount === 0) {
             throw new common_1.NotFoundException(`Report with ID ${id} not found`);
         }
@@ -203,6 +264,8 @@ exports.ReportsService = ReportsService;
 exports.ReportsService = ReportsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(report_schema_1.Report.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        mailer_1.MailerService,
+        users_service_1.UsersService])
 ], ReportsService);
 //# sourceMappingURL=reports.service.js.map
