@@ -1,8 +1,9 @@
 // src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as swaggerUi from 'swagger-ui-express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -25,7 +26,7 @@ async function bootstrap() {
   // API prefix
   app.setGlobalPrefix('api');
 
-  // Swagger documentation
+  // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Heatmap API')
     .setDescription('Backend API for Heatmap project')
@@ -33,7 +34,20 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+
+  // Serve Swagger JSON
+  app.use('/api/docs-json', (req, res) => res.json(document));
+
+  // Serve Swagger UI via swagger-ui-express
+  app.use(
+    '/api/docs',
+    swaggerUi.serve,
+    swaggerUi.setup(document, {
+      swaggerOptions: {
+        url: '/api/docs-json', // point Swagger UI to the JSON route
+      },
+    }),
+  );
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
