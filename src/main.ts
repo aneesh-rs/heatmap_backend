@@ -10,8 +10,10 @@ async function bootstrap() {
 
   // Enable CORS for frontend
   app.enableCors({
-    origin:
-      process.env.FRONTEND_URL || 'https://heatmap-api-integration.vercel.app/',
+    origin: [
+      'https://heatmap-api-integration.vercel.app',
+      'http://localhost:5173',
+    ],
     credentials: true,
   });
 
