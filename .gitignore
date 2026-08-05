@@ -1,2 +1,10 @@
 node_modules
+dist
+.env
+.env.*
+!.env.example
+coverage
 .vercel
+*.log
+bash.exe.stackdump
+.gitignore copy

@@ -5,20 +5,28 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { FtpService } from './ftp.service';
 import { SentiloService } from './sentilo.service';
 import { ImportService, NoiseDataPoint } from './import.service';
 import { FtpImportDto } from './dto/ftp-import.dto';
 import { SentiloImportDto } from './dto/sentilo-import.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('import')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('Admin')
 @Controller('import')
 export class ImportController {
   constructor(

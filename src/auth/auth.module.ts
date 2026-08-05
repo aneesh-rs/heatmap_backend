@@ -16,7 +16,7 @@ import { ResetPasswordGuard } from './guards/reset-password.guard';
     InvitationsModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-secret-key',
+      secret: process.env.JWT_SECRET || 'dev-only-change-me',
       signOptions: { expiresIn: '24h' },
     }),
   ],

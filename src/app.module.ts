@@ -1,8 +1,6 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { join } from 'path';
@@ -26,14 +24,6 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
     MongooseModule.forRoot(
       process.env.MONGODB_URI || 'mongodb://localhost:27017/heatmap',
     ),
-
-    // Rate limiting
-    // ThrottlerModule.forRoot([
-    //   {
-    //     ttl: 60000, // 1 minute
-    //     limit: 100, // 100 requests per minute
-    //   },
-    // ]),
 
     // Email service
     MailerModule.forRoot({
@@ -67,12 +57,6 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
     ReportsModule,
     InvitationsModule,
     ImportModule,
-  ],
-  providers: [
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: ThrottlerGuard,
-    // },
   ],
 })
 export class AppModule {

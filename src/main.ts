@@ -7,12 +7,17 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS for frontend
+  // CORS: FRONTEND_URL can be comma-separated list
+  const corsOrigins = [
+    'https://heatmap-api-integration.vercel.app',
+    'http://localhost:5173',
+    ...(process.env.FRONTEND_URL || '')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
+  ];
   app.enableCors({
-    origin: [
-      'https://heatmap-api-integration.vercel.app',
-      'http://localhost:5173',
-    ],
+    origin: [...new Set(corsOrigins)],
     credentials: true,
   });
 
