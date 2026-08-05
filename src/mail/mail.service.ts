@@ -48,11 +48,22 @@ export class MailService {
     }
   }
 
+  /** Gmail only allows sending as the authorized mailbox (or its aliases). */
   private getFrom(): string {
-    return (
-      process.env.EMAIL_FROM ||
-      `"Heatmap App" <${process.env.GMAIL_SENDER}>`
-    );
+    const sender = process.env.GMAIL_SENDER!.trim();
+    const fromEnv = process.env.EMAIL_FROM?.trim();
+
+    if (fromEnv) {
+      const emailMatch = fromEnv.match(/<([^>]+)>/)?.[1] ?? fromEnv;
+      if (emailMatch.toLowerCase() === sender.toLowerCase()) {
+        return fromEnv.includes('<') ? fromEnv : `"Heatmap App" <${sender}>`;
+      }
+      this.logger.warn(
+        `EMAIL_FROM (${emailMatch}) != GMAIL_SENDER (${sender}); using GMAIL_SENDER`,
+      );
+    }
+
+    return `"Heatmap App" <${sender}>`;
   }
 
   private encodeSubject(subject: string): string {
@@ -85,6 +96,28 @@ export class MailService {
     ].join('\r\n');
   }
 
+  private extractGoogleError(error: unknown): string {
+    if (!error || typeof error !== 'object') {
+      return 'Unknown Gmail API error';
+    }
+
+    const err = error as {
+      message?: string;
+      response?: { status?: number; data?: { error?: { message?: string; status?: string; errors?: Array<{ message?: string; reason?: string }> } } };
+    };
+
+    const data = err.response?.data?.error;
+    const parts = [
+      err.message,
+      data?.status,
+      data?.message,
+      ...(data?.errors ?? []).map((e) => e.reason || e.message),
+      err.response?.status ? `http=${err.response.status}` : undefined,
+    ].filter(Boolean);
+
+    return parts.join(' | ') || 'Unknown Gmail API error';
+  }
+
   async send(options: SendMailOptions) {
     this.assertConfigured();
 
@@ -101,6 +134,17 @@ export class MailService {
     }
 
     try {
+      const profile = await this.gmail.users.getProfile({ userId: 'me' });
+      const mailbox = profile.data.emailAddress;
+      if (
+        mailbox &&
+        mailbox.toLowerCase() !== process.env.GMAIL_SENDER!.trim().toLowerCase()
+      ) {
+        this.logger.warn(
+          `Token mailbox (${mailbox}) != GMAIL_SENDER (${process.env.GMAIL_SENDER})`,
+        );
+      }
+
       const raw = this.buildRawMessage(options.to, options.subject, html);
       const response = await this.gmail.users.messages.send({
         userId: 'me',
@@ -115,8 +159,7 @@ export class MailService {
 
       return response.data;
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Unknown Gmail API error';
+      const message = this.extractGoogleError(error);
       this.logger.error(`Failed to send email to ${options.to}: ${message}`);
       throw new ServiceUnavailableException(
         `Failed to send email via Gmail API: ${message}`,
