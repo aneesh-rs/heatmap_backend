@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ReportsModule } from './reports/reports.module';
 import { InvitationsModule } from './invitations/invitations.module';
+import { ImportModule } from './import/import.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 
 @Module({
@@ -65,6 +66,7 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
     UsersModule,
     ReportsModule,
     InvitationsModule,
+    ImportModule,
   ],
   providers: [
     // {

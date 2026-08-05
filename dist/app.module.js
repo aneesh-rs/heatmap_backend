@@ -17,6 +17,7 @@ const auth_module_1 = require("./auth/auth.module");
 const users_module_1 = require("./users/users.module");
 const reports_module_1 = require("./reports/reports.module");
 const invitations_module_1 = require("./invitations/invitations.module");
+const import_module_1 = require("./import/import.module");
 const logger_middleware_1 = require("./middleware/logger.middleware");
 let AppModule = class AppModule {
     configure(consumer) {
@@ -59,6 +60,7 @@ exports.AppModule = AppModule = __decorate([
             users_module_1.UsersModule,
             reports_module_1.ReportsModule,
             invitations_module_1.InvitationsModule,
+            import_module_1.ImportModule,
         ],
         providers: [],
     })
