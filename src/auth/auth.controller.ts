@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  NotImplementedException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -56,8 +57,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Login with Facebook OAuth' })
   @ApiResponse({ status: 200, description: 'Facebook login successful' })
   async facebookLogin(@Body() socialLoginDto: SocialLoginDto) {
-    // TODO: Implement Facebook login similar to Google
-    throw new Error('Facebook login not implemented yet');
+    throw new NotImplementedException('Facebook login is not available yet');
   }
 
   @Post('apple-login')
@@ -65,8 +65,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Login with Apple OAuth' })
   @ApiResponse({ status: 200, description: 'Apple login successful' })
   async appleLogin(@Body() socialLoginDto: SocialLoginDto) {
-    // TODO: Implement Apple login similar to Google
-    throw new Error('Apple login not implemented yet');
+    throw new NotImplementedException('Apple login is not available yet');
   }
 
   @Post('verify-email')

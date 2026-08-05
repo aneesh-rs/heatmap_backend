@@ -46,7 +46,7 @@ export class ReportsService {
       );
 
       await this.mailerService.sendMail({
-        to: 'admin@cloudnoise.com', // Replace with actual admin email
+        to: process.env.ADMIN_EMAIL || 'admin@cloudnoise.com',
         subject: 'New Report Created',
         template: 'report-created',
         context: {

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { InvitationsService } from './invitations.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
@@ -23,7 +23,9 @@ export class InvitationsController {
       body.role,
       body.reservedEmail,
     );
-    const invitationLink = `${process.env.FRONTEND_URL}/signup?invitationId=${invite.id}`;
+    const frontendUrl =
+      process.env.FRONTEND_URL || 'http://localhost:5173';
+    const invitationLink = `${frontendUrl}/signup?invitationId=${invite.id}`;
     return {
       invitationId: invite.id,
       invitationLink,
@@ -38,12 +40,14 @@ export class InvitationsController {
   }
 
   @Post('accept')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Accept invitation (manual endpoint if needed)' })
-  async accept(@Body() body: AcceptInvitationDto) {
+  async accept(@Body() body: AcceptInvitationDto, @Request() req) {
     return this.invitationsService.acceptInvitation(
       body.invitationId,
-      body.userId,
-      body.email,
+      req.user.id,
+      req.user.email,
     );
   }
 }

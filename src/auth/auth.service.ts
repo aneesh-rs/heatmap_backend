@@ -220,8 +220,12 @@ export class AuthService {
     return { message: 'Email verified successfully' };
   }
 
+  private getFrontendUrl(): string {
+    return process.env.FRONTEND_URL || 'http://localhost:5173';
+  }
+
   private async sendVerificationEmail(email: string, token: string) {
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+    const verificationUrl = `${this.getFrontendUrl()}/verify-email?token=${token}`;
 
     await this.mailerService.sendMail({
       to: email,
@@ -272,7 +276,7 @@ export class AuthService {
   }
 
   private async sendResetPasswordEmail(email: string, token: string) {
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const resetUrl = `${this.getFrontendUrl()}/reset-password?token=${token}`;
 
     await this.mailerService.sendMail({
       to: email,
