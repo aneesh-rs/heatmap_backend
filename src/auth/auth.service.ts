@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { MailerService } from '@nestjs-modules/mailer';
+import { MailService } from '../mail/mail.service';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
@@ -25,7 +25,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private mailerService: MailerService,
+    private mailService: MailService,
     private invitationsService: InvitationsService,
   ) {
     this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '');
@@ -227,10 +227,10 @@ export class AuthService {
   private async sendVerificationEmail(email: string, token: string) {
     const verificationUrl = `${this.getFrontendUrl()}/verify-email?token=${token}`;
 
-    await this.mailerService.sendMail({
+    await this.mailService.send({
       to: email,
       subject: 'Verify your email',
-      template: './verification',
+      template: 'verification',
       context: {
         verificationUrl,
       },
@@ -278,10 +278,10 @@ export class AuthService {
   private async sendResetPasswordEmail(email: string, token: string) {
     const resetUrl = `${this.getFrontendUrl()}/reset-password?token=${token}`;
 
-    await this.mailerService.sendMail({
+    await this.mailService.send({
       to: email,
       subject: 'Reset your password',
-      template: './reset-password',
+      template: 'reset-password',
       context: {
         resetUrl,
       },

@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { MailerService } from '@nestjs-modules/mailer';
+import { MailService } from '../mail/mail.service';
 import { UsersService } from '../users/users.service';
 import { Report, ReportDocument } from '../schemas/report.schema';
 import { CreateReportDto } from './dto/create-report.dto';
@@ -16,7 +16,7 @@ import { QueryReportsDto } from './dto/query-reports.dto';
 export class ReportsService {
   constructor(
     @InjectModel(Report.name) private reportModel: Model<ReportDocument>,
-    private readonly mailerService: MailerService,
+    private readonly mailService: MailService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -45,7 +45,7 @@ export class ReportsService {
         },
       );
 
-      await this.mailerService.sendMail({
+      await this.mailService.send({
         to: process.env.ADMIN_EMAIL || 'admin@cloudnoise.com',
         subject: 'New Report Created',
         template: 'report-created',
@@ -164,7 +164,7 @@ export class ReportsService {
           hour12: true,
         });
 
-        await this.mailerService.sendMail({
+        await this.mailService.send({
           to: user.email,
           subject: 'News from your report!',
           template: 'report-closed',
