@@ -134,17 +134,6 @@ export class MailService {
     }
 
     try {
-      const profile = await this.gmail.users.getProfile({ userId: 'me' });
-      const mailbox = profile.data.emailAddress;
-      if (
-        mailbox &&
-        mailbox.toLowerCase() !== process.env.GMAIL_SENDER!.trim().toLowerCase()
-      ) {
-        this.logger.warn(
-          `Token mailbox (${mailbox}) != GMAIL_SENDER (${process.env.GMAIL_SENDER})`,
-        );
-      }
-
       const raw = this.buildRawMessage(options.to, options.subject, html);
       const response = await this.gmail.users.messages.send({
         userId: 'me',
