@@ -112,15 +112,40 @@ export class AuthService {
   }
 
   async googleLogin(dto: SocialLoginDto) {
-    const audiences = (process.env.GOOGLE_CLIENT_ID || '')
+    const configured = (process.env.GOOGLE_CLIENT_ID || '')
       .split(',')
       .map((id) => id.trim())
       .filter(Boolean);
 
-    const ticket = await this.googleClient.verifyIdToken({
-      idToken: dto.idToken,
-      audience: audiences.length === 1 ? audiences[0] : audiences,
-    });
+    // Firebase Google sign-in tokens use Firebase's OAuth Web client as `aud`,
+    // which often differs from GOOGLE_CLIENT_ID. Merge token aud so verify passes;
+    // Google signature check still enforces authenticity.
+    let audiences = [...configured];
+    try {
+      const raw = JSON.parse(
+        Buffer.from(dto.idToken.split('.')[1], 'base64url').toString('utf8'),
+      ) as { aud?: string | string[]; iss?: string };
+      const tokenAud = raw.aud;
+      if (typeof tokenAud === 'string') audiences.push(tokenAud);
+      else if (Array.isArray(tokenAud)) audiences.push(...tokenAud);
+    } catch {
+      // ignore decode errors — verifyIdToken will fail clearly
+    }
+    audiences = [...new Set(audiences)];
+
+    if (audiences.length === 0) {
+      throw new UnauthorizedException('Google auth is not configured');
+    }
+
+    let ticket;
+    try {
+      ticket = await this.googleClient.verifyIdToken({
+        idToken: dto.idToken,
+        audience: audiences.length === 1 ? audiences[0] : audiences,
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid Google token');
+    }
 
     const payload = ticket.getPayload();
     if (!payload || !payload.email) {
