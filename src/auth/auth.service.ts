@@ -112,9 +112,14 @@ export class AuthService {
   }
 
   async googleLogin(dto: SocialLoginDto) {
+    const audiences = (process.env.GOOGLE_CLIENT_ID || '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+
     const ticket = await this.googleClient.verifyIdToken({
       idToken: dto.idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: audiences.length === 1 ? audiences[0] : audiences,
     });
 
     const payload = ticket.getPayload();
