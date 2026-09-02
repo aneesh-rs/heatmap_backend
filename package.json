@@ -6,8 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
-    "postbuild": "rm -rf api/dist && cp -r dist api/dist",
+    "build": "nest build && rm -rf api/dist && cp -r dist api/dist",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
