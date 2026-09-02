@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const serverlessPath = path.join(__dirname, 'dist', 'serverless.js');
+const serverlessPath = path.join(__dirname, '..', 'dist', 'serverless.js');
 
 if (!fs.existsSync(serverlessPath)) {
   module.exports = async (_req, res) => {
@@ -9,9 +9,9 @@ if (!fs.existsSync(serverlessPath)) {
     res.status(500).json({
       statusCode: 500,
       message:
-        'Server build incomplete: api/dist missing. Check Vercel build logs for nest build.',
+        'Server build incomplete: dist/serverless.js missing. Check Vercel build logs.',
     });
   };
 } else {
-  module.exports = require('./dist/serverless.js').default;
+  module.exports = require('../dist/serverless.js').default;
 }
