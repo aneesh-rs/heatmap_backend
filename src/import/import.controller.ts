@@ -17,8 +17,10 @@ import {
 import { FtpService } from './ftp.service';
 import { SentiloService } from './sentilo.service';
 import { ImportService, NoiseDataPoint } from './import.service';
+import { CloudNoiseService } from './cloudnoise.service';
 import { FtpImportDto } from './dto/ftp-import.dto';
 import { SentiloImportDto } from './dto/sentilo-import.dto';
+import { CloudNoiseQueryDto } from './dto/cloudnoise-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -33,6 +35,7 @@ export class ImportController {
     private readonly ftpService: FtpService,
     private readonly sentiloService: SentiloService,
     private readonly importService: ImportService,
+    private readonly cloudNoiseService: CloudNoiseService,
   ) {}
 
   @Post('ftp')
@@ -117,6 +120,39 @@ export class ImportController {
         `Failed to import data from FTP: ${error.message}`,
       );
     }
+  }
+
+  @Post('cloudnoise')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Fetch street noise GeoJSON via CoAP (CloudNoise)',
+    description:
+      'Proxies a CoAP GET with JSON payload to the LPWGNS server and returns GeoJSON.',
+  })
+  @ApiBody({ type: CloudNoiseQueryDto })
+  @ApiResponse({
+    status: 200,
+    description: 'GeoJSON fetched successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        featureCount: { type: 'number' },
+        geojson: { type: 'object' },
+      },
+    },
+  })
+  async importFromCloudNoise(@Body() dto: CloudNoiseQueryDto): Promise<{
+    success: boolean;
+    featureCount: number;
+    geojson: unknown;
+  }> {
+    const geojson = await this.cloudNoiseService.fetchGeoJson(dto);
+    return {
+      success: true,
+      featureCount: geojson.features.length,
+      geojson,
+    };
   }
 
   @Post('sentilo')
