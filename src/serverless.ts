@@ -1,10 +1,10 @@
-const express = require('express');
-const { createApp } = require('../dist/create-app');
+import express from 'express';
+import { createApp } from './create-app';
 
 const expressApp = express();
-let bootstrapPromise;
+let bootstrapPromise: ReturnType<typeof createApp> | undefined;
 
-module.exports = async (req, res) => {
+export default async function handler(req: express.Request, res: express.Response) {
   try {
     if (!bootstrapPromise) {
       bootstrapPromise = createApp(expressApp);
@@ -13,14 +13,14 @@ module.exports = async (req, res) => {
     await bootstrapPromise;
     expressApp(req, res);
   } catch (error) {
-    bootstrapPromise = null;
+    bootstrapPromise = undefined;
     console.error('Serverless bootstrap failed:', error);
 
     if (!res.headersSent) {
       res.status(500).json({
         statusCode: 500,
-        message: error?.message || 'Internal server error',
+        message: error instanceof Error ? error.message : 'Internal server error',
       });
     }
   }
-};
+}
