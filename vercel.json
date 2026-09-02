@@ -4,14 +4,20 @@
   "buildCommand": "npm run build",
   "builds": [
     {
-      "src": "dist/serverless.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/serverless.js"
+      "dest": "api/index.js"
     }
-  ]
+  ],
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "api/dist/**",
+      "maxDuration": 30
+    }
+  }
 }
