@@ -17,9 +17,24 @@ import { MailModule } from './mail/mail.module';
       envFilePath: '.env',
     }),
 
-    MongooseModule.forRoot(
-      process.env.MONGODB_URI || 'mongodb://localhost:27017/heatmap',
-    ),
+    MongooseModule.forRootAsync({
+      useFactory: () => {
+        const uri = process.env.MONGODB_URI?.trim();
+        if (!uri) {
+          return {
+            uri: 'mongodb://localhost:27017/heatmap',
+            serverSelectionTimeoutMS: 5000,
+            connectTimeoutMS: 5000,
+          };
+        }
+
+        return {
+          uri,
+          serverSelectionTimeoutMS: 10000,
+          connectTimeoutMS: 10000,
+        };
+      },
+    }),
 
     MailModule,
     // Application modules

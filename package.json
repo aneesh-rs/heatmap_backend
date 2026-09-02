@@ -37,6 +37,7 @@
     "class-validator": "^0.14.2",
     "coap": "^1.6.0",
     "csv-parser": "^3.2.0",
+    "express": "^5.1.0",
     "google-auth-library": "^10.3.0",
     "googleapis": "^174.0.0",
     "handlebars": "^4.7.9",

@@ -5,7 +5,23 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { Express } from 'express';
 import { AppModule } from './app.module';
 
+function assertServerlessEnv(): void {
+  if (!process.env.VERCEL) {
+    return;
+  }
+
+  const required = ['MONGODB_URI', 'JWT_SECRET'] as const;
+  const missing = required.filter((key) => !process.env[key]?.trim());
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required environment variables on Vercel: ${missing.join(', ')}`,
+    );
+  }
+}
+
 export async function createApp(expressApp: Express): Promise<INestApplication> {
+  assertServerlessEnv();
   const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
 
   const corsOrigins = [
